@@ -2,19 +2,22 @@
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Jinwah: Voidheart</title>
+<title>Jinwah: Voidheart | Official Archive</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cormorant+Garamond:wght@300;400&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <style>
-:root { --bg:#00000a; --text:#ccc8e0; --accent:#00f0ff; --border:rgba(0,240,255,0.1); }
-body { background:var(--bg); color:var(--text); font-family:'Cormorant Garamond', serif; margin:0; }
+:root { --bg:#00000a; --text:#ccc8e0; --accent:#00f0ff; --border:rgba(0,240,255,0.1); --card-bg:rgba(0,240,255,0.02); }
+body { background:var(--bg); color:var(--text); font-family:'Cormorant Garamond', serif; margin:0; line-height: 1.6; }
 nav { padding:1.5rem; border-bottom:1px solid var(--border); text-align:center; position: sticky; top: 0; background: rgba(0,0,10,0.95); backdrop-filter: blur(10px); z-index: 100; }
-.logo { font-family:'Cinzel Decorative'; color:var(--accent); text-decoration:none; letter-spacing:3px; font-size:1.5rem; }
+.logo { font-family:'Cinzel Decorative'; color:var(--accent); text-decoration:none; letter-spacing:3px; font-size:1.4rem; text-shadow: 0 0 10px var(--accent); }
 #main-ui, #reader-ui { padding:2rem; max-width:800px; margin:0 auto; }
-.card { border:1px solid var(--border); padding:1.2rem; margin-bottom:0.8rem; cursor:pointer; background:rgba(0,240,255,0.02); display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
-.card:hover { border-color:var(--accent); background:rgba(0,240,255,0.05); }
+.tabs { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 2.5rem; }
+.tab-btn { background: none; border: 1px solid var(--border); color: var(--text); padding: 0.6rem 1rem; font-family: 'Share Tech Mono'; cursor: pointer; font-size: 0.7rem; transition: 0.3s; letter-spacing: 1px; }
+.tab-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(0,240,255,0.05); }
+.card { border:1px solid var(--border); padding:1.2rem; margin-bottom:1rem; cursor:pointer; background:var(--card-bg); display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
+.card:hover { border-color:var(--accent); transform: translateX(5px); }
 .btn { background:none; border:1px solid var(--accent); color:var(--accent); padding:0.6rem 1.2rem; font-family:'Share Tech Mono'; cursor:pointer; text-transform:uppercase; font-size: 0.7rem; }
-#chapter-text { font-size:1.3rem; line-height:1.9; white-space: pre-wrap; font-weight:300; margin-top:2rem; }
-h3 { margin: 0; font-family: 'Share Tech Mono'; font-size: 0.9rem; letter-spacing: 1px; }
+#content-body { font-size:1.3rem; line-height:1.9; white-space: pre-wrap; font-weight:300; margin-top:2rem; }
+h3 { margin: 0; font-family: 'Share Tech Mono'; font-size: 0.9rem; letter-spacing: 1px; color: #fff; }
 </style>
 </head>
 <body>
@@ -22,62 +25,97 @@ h3 { margin: 0; font-family: 'Share Tech Mono'; font-size: 0.9rem; letter-spacin
 <nav><a href="index.html" class="logo">VOIDHEART</a></nav>
 
 <div id="main-ui">
-  <h2 style="font-family:'Cinzel Decorative'; color:#fff; border-bottom:1px solid var(--border); padding-bottom:1rem; text-align:center; font-size: 1rem; letter-spacing: 2px;">THE ARCHIVE</h2>
-  <div id="chapter-list"></div>
+  <div class="tabs">
+    <button id="tab-chapters" class="tab-btn active" onclick="switchTab('chapters')">THE ARCHIVE</button>
+    <button id="tab-codex" class="tab-btn" onclick="switchTab('codex')">WORLD CODEX</button>
+  </div>
+  <div id="list-container"></div>
 </div>
 
 <div id="reader-ui" style="display:none;">
-  <button class="btn" onclick="closeReader()">← Close Fragment</button>
-  <h1 id="reader-title" style="font-family:'Cinzel Decorative'; font-size: 1.5rem; margin-top: 2rem; color: #fff;"></h1>
-  <div id="chapter-text">Searching the Void...</div>
+  <button class="btn" onclick="closeReader()">← Return</button>
+  <h1 id="reader-title" style="font-family:'Cinzel Decorative'; font-size: 1.8rem; margin-top: 2.5rem; color: #fff;"></h1>
+  <div id="content-body">Consulting the Void...</div>
 </div>
 
 <script>
-const chapters = [
-  "The Awakening Void", "Eyes of the Ossuary", "Disciples of Burning Light", 
-  "The Empress Sends Word", "The Third Path", "Elara", 
-  "What the Void Remembers", "Refusal", "The Faith That Breaks", "Convergence"
-];
+const data = {
+  chapters: [
+    "The Awakening Void", "Eyes of the Ossuary", "Disciples of Burning Light", 
+    "The Empress Sends Word", "The Third Path", "Elara", 
+    "What the Void Remembers", "Refusal", "The Faith That Breaks", "Convergence"
+  ],
+  codex: [
+    { id: "Jinwah", title: "Jinwah: The Voidheart" },
+    { id: "Elara", title: "Elara: The Light-Bearer" },
+    { id: "Ossuary", title: "The Voidan Ossuary" },
+    { id: "Empress", title: "The Court of Death" }
+  ]
+};
 
-const listContainer = document.getElementById('chapter-list');
+let currentTab = 'chapters';
 
-chapters.forEach((title, index) => {
-  const num = index + 1;
-  const card = document.createElement('div');
-  card.className = 'card';
-  card.onclick = () => openChapter(num, title);
-  card.innerHTML = `<div><h3>CHAPTER ${num}</h3><span style="font-size:0.8rem; opacity:0.6">${title}</span></div> <span style="color:var(--accent)">→</span>`;
-  listContainer.appendChild(card);
-});
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tab-chapters').classList.toggle('active', tab === 'chapters');
+  document.getElementById('tab-codex').classList.toggle('active', tab === 'codex');
+  renderMenu();
+}
 
-async function openChapter(num, title) {
+function renderMenu() {
+  const container = document.getElementById('list-container');
+  container.innerHTML = '';
+  
+  if (currentTab === 'chapters') {
+    data.chapters.forEach((title, i) => {
+      const card = createCard(`CHAPTER ${i+1}`, title, () => openItem(`Chapter ${i+1}`, title, 'chapters'));
+      container.appendChild(card);
+    });
+  } else {
+    data.codex.forEach(item => {
+      const card = createCard("CODEX", item.title, () => openItem(item.id, item.title, 'lore'));
+      container.appendChild(card);
+    });
+  }
+}
+
+function createCard(label, sub, action) {
+  const div = document.createElement('div');
+  div.className = 'card';
+  div.onclick = action;
+  div.innerHTML = `<div><h3>${label}</h3><span style="font-size:0.8rem; opacity:0.6">${sub}</span></div> <span style="color:var(--accent)">→</span>`;
+  return div;
+}
+
+async function openItem(fileName, title, folder) {
   document.getElementById('main-ui').style.display = 'none';
   document.getElementById('reader-ui').style.display = 'block';
   document.getElementById('reader-title').innerText = title;
-  const content = document.getElementById('chapter-text');
-  content.innerText = "Searching the Void...";
+  const content = document.getElementById('content-body');
+  content.innerText = "Consulting the Void...";
+
+  // FORGIVING FETCH: Handles the space in "Chapter 4 .txt"
+  let paths = folder === 'chapters' ? [`${fileName}.txt`, `${fileName} .txt`] : [`lore/${fileName}.txt`];
   
-  // ADJUSTED FETCH LOGIC: Checks for both standard and spaced filenames
-  let res = await fetch(`Chapter ${num}.txt`);
-  
-  if (!res.ok) {
-    // Try the version with the extra space before the dot (e.g., "Chapter 4 .txt")
-    res = await fetch(`Chapter ${num} .txt`);
+  for (let path of paths) {
+    try {
+      let res = await fetch(path);
+      if (res.ok) {
+        content.innerText = await res.text();
+        window.scrollTo(0,0);
+        return;
+      }
+    } catch(e) {}
   }
-  
-  try {
-    if (!res.ok) throw new Error();
-    content.innerText = await res.text();
-    window.scrollTo(0,0);
-  } catch (e) {
-    content.innerText = "Error: This fragment is missing from the Repository. Ensure the file is named 'Chapter " + num + ".txt' on GitHub.";
-  }
+  content.innerText = "Error: This fragment is missing from the Repository. Please ensure the file exists on GitHub.";
 }
 
 function closeReader() {
   document.getElementById('main-ui').style.display = 'block';
   document.getElementById('reader-ui').style.display = 'none';
 }
+
+renderMenu();
 </script>
 </body>
 </html>
