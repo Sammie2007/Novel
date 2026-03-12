@@ -1,4 +1,4 @@
-/* --- CHAPTER DATA --- */
+/* --- CONFIGURATION --- */
 const chapters = [
     "The Awakening Void", "Eyes of the Ossuary", "Disciples of Burning Light", 
     "The Empress Sends Word", "The Third Path", "Elara", 
@@ -15,30 +15,38 @@ const themeBtn = document.getElementById('theme-btn');
 const backBtn = document.getElementById('back-btn');
 const statusText = document.getElementById('reading-status');
 
-/* --- THEME INITIALIZATION --- */
+/* --- THEME LOGIC --- */
 function initTheme() {
+    // Check localStorage first, default to dark
     const savedTheme = localStorage.getItem('theme') || 'dark';
     document.documentElement.setAttribute('data-theme', savedTheme);
+    // Update button icon/text based on theme
+    themeBtn.innerText = savedTheme === 'dark' ? '☼' : '☾';
 }
 
 themeBtn.addEventListener('click', () => {
     const current = document.documentElement.getAttribute('data-theme');
     const next = current === 'dark' ? 'light' : 'dark';
+    
     document.documentElement.setAttribute('data-theme', next);
     localStorage.setItem('theme', next);
+    
+    // Switch icon
+    themeBtn.innerText = next === 'dark' ? '☼' : '☾';
 });
 
 /* --- ARCHIVE BUILDER --- */
 function renderArchive() {
     if (!listContainer) return;
     listContainer.innerHTML = '';
+    
     chapters.forEach((title, index) => {
         const num = index + 1;
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
             <h3 style="margin:0; font-family:'Share Tech Mono'; font-size:0.7rem; color:var(--accent)">CHAPTER ${num}</h3>
-            <p style="margin:10px 0 0 0; font-weight:600;">${title}</p>
+            <p style="margin:10px 0 0 0; font-weight:600; font-family:'Cormorant Garamond';">${title}</p>
         `;
         card.onclick = () => openChapter(num, title);
         listContainer.appendChild(card);
@@ -47,14 +55,19 @@ function renderArchive() {
 
 /* --- READER ENGINE --- */
 async function openChapter(num, title) {
+    // Hide Home, Show Reader
     mainUI.style.display = 'none';
     readerUI.style.display = 'block';
+    
+    // Set UI Details
     readerTitle.innerText = title;
     statusText.innerText = `READING: CHAPTER ${num}`;
     contentBody.innerText = "Consulting the Void...";
-    window.scrollTo(0,0);
+    
+    // Smooth scroll to top of reader
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    // Try both naming conventions just in case
+    // Fetch Logic
     const paths = [`Chapter ${num}.txt`, `Chapter ${num} .txt`];
     
     for (let path of paths) {
@@ -65,18 +78,20 @@ async function openChapter(num, title) {
                 contentBody.innerText = text;
                 return;
             }
-        } catch (e) { console.error("Fetch Error:", e); }
+        } catch (e) { console.error("Void Fetch Error:", e); }
     }
-    contentBody.innerText = "Error: Chapter data is missing from the Repository.";
+    contentBody.innerText = "Error: This chapter has not yet been transcribed to the Repository.";
 }
 
-function closeReader() {
+/* --- NAVIGATION --- */
+backBtn.addEventListener('click', () => {
     readerUI.style.display = 'none';
     mainUI.style.display = 'block';
-    window.scrollTo(0,0);
-}
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+});
 
-/* --- BOOT UP --- */
-initTheme();
-renderArchive();
-backBtn.addEventListener('click', closeReader);
+/* --- INITIALIZE --- */
+document.addEventListener('DOMContentLoaded', () => {
+    initTheme();
+    renderArchive();
+});
